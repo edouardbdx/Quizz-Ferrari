@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ferrari Palau Quizz</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --rosso: #D40000; --rossoMid: #A80000; --rossoDark: #6B0000;
+    --gold: #C8952A; --goldLight: #E8B84B;
+    --bg: #0D0D0D; --bgCard: #161010; --bgCard2: #1E1212;
+    --border: rgba(212,0,0,0.18); --borderSub: rgba(212,0,0,0.10);
+    --textPri: #F0EAE0; --textSec: #9A8A80; --textDim: #5A4A44;
+    --green: #2ECC71; --greenBg: rgba(46,204,113,0.12); --greenBdr: rgba(46,204,113,0.35);
+  }
+  body {
+    background: linear-gradient(170deg, var(--bg) 0%, #1A0808 50%, var(--bg) 100%);
+    background-attachment: fixed;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    color: var(--textPri); min-height: 100vh;
+  }
+  .header {
+    background: linear-gradient(90deg, var(--rossoDark), var(--rosso), var(--rossoDark));
+    padding: 13px 20px; display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 3px 20px rgba(212,0,0,0.55); position: sticky; top: 0; z-index: 100;
+  }
+  .logo { display: flex; align-items: center; gap: 12px; }
+  .badge {
+    width: 38px; height: 38px; background: linear-gradient(135deg, var(--gold), var(--goldLight));
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  }
+  .title { font-size: 18px; font-weight: 900; letter-spacing: 3px; text-transform: uppercase; line-height: 1.1; color: #fff; }
+  .subtitle { font-size: 9px; letter-spacing: 5px; opacity: 0.7; text-transform: uppercase; color: #FFD080; }
+  .qcount-label { font-size: 10px; opacity: 0.6; letter-spacing: 1px; color: #FFD080; text-align: right; }
+  .qcount { font-size: 20px; font-weight: 800; color: #fff; text-align: right; }
+  .qcount span { opacity: 0.4; font-size: 13px; }
+  .progress-track { height: 3px; background: rgba(255,255,255,0.05); }
+  .progress-bar { height: 100%; background: linear-gradient(90deg, var(--rosso), var(--goldLight)); transition: width 0.4s ease; box-shadow: 0 0 8px var(--rosso); }
+  .container { max-width: 700px; margin: 0 auto; padding: 18px 14px 60px; }
+  .chip-row { display: flex; justify-content: flex-end; margin-bottom: 12px; }
+  .chip { background: rgba(212,0,0,0.12); border: 1px solid rgba(212,0,0,0.3); border-radius: 20px; padding: 3px 14px; font-size: 11px; color: var(--goldLight); font-weight: 700; letter-spacing: 1px; }
+  .img-wrap {
+    border-radius: 14px; overflow: hidden; margin-bottom: 18px;
+    box-shadow: 0 6px 32px rgba(212,0,0,0.22), 0 2px 8px rgba(0,0,0,0.6);
+    border: 1.5px solid var(--border); background: #0a0505; height: 255px;
+    display: flex; align-items: center; justify-content: center; position: relative;
+  }
+  .img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+  .img-wrap .vignette { position: absolute; inset: 0; background: linear-gradient(to top, rgba(13,0,0,0.35) 0%, transparent 50%); pointer-events: none; }
+  .options { display: flex; flex-direction: column; gap: 9px; margin-bottom: 18px; }
+  .opt {
+    border-radius: 10px; padding: 13px 16px; font-size: 14px; font-weight: 500;
+    cursor: pointer; display: flex; align-items: center; gap: 12px;
+    transition: all 0.18s ease; text-align: left; width: 100%;
+  }
+  .opt .letter {
+    min-width: 26px; height: 26px; border-radius: 50%; display: flex;
+    align-items: center; justify-content: center; font-size: 11px; font-weight: 800; flex-shrink: 0;
+  }
+  .opt .opt-text { flex: 1; }
+  .opt .mark { font-size: 17px; margin-left: auto; }
+  .explanation { background: var(--bgCard2); border: 1px solid rgba(255,255,255,0.08); border-radius: 13px; padding: 17px; margin-bottom: 16px; animation: fadeIn 0.3s ease; }
+  .exp-head { display: flex; align-items: center; gap: 9px; margin-bottom: 11px; font-size: 14px; font-weight: 700; }
+  .exp-text { color: var(--textSec); font-size: 13px; line-height: 1.75; margin-bottom: 14px; }
+  .specs { background: rgba(212,0,0,0.07); border-left: 2.5px solid var(--rosso); border-radius: 0 8px 8px 0; padding: 10px 14px; }
+  .specs-title { font-size: 9px; letter-spacing: 2px; color: var(--rosso); font-weight: 700; margin-bottom: 9px; text-transform: uppercase; }
+  .specs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .specs-grid .label { font-size: 10px; color: var(--textDim); }
+  .specs-grid .value { font-size: 12px; font-weight: 600; color: var(--textPri); margin-top: 2px; }
+  .btn-next {
+    width: 100%; padding: 14px; background: linear-gradient(90deg, var(--rossoDark), var(--rosso));
+    border: none; border-radius: 11px; color: #fff; font-size: 14px; font-weight: 700;
+    cursor: pointer; letter-spacing: 1.5px; text-transform: uppercase;
+    box-shadow: 0 4px 18px rgba(212,0,0,0.4); transition: opacity 0.15s;
+  }
+  .btn-next:hover { opacity: 0.88; }
+  .counter { margin-top: 22px; background: var(--bgCard); border: 1px solid var(--borderSub); border-radius: 12px; padding: 13px 20px; display: flex; align-items: center; justify-content: space-between; }
+  .counter .c-label { font-size: 10px; color: var(--textDim); letter-spacing: 1.5px; text-transform: uppercase; }
+  .counter .c-score { display: flex; align-items: baseline; gap: 5px; }
+  .counter .c-score .big { font-size: 30px; font-weight: 900; color: var(--goldLight); line-height: 1; }
+  .counter .c-score .small { font-size: 15px; color: var(--textDim); font-weight: 400; }
+  .counter .c-pct { font-size: 11px; font-weight: 700; }
+  /* Results */
+  .results { position: relative; text-align: center; padding-top: 12px; }
+  .podium-card { background: linear-gradient(170deg, #1E0505 0%, var(--bgCard) 100%); border-radius: 18px; padding: 28px 20px 24px; margin-bottom: 18px; border: 1px solid var(--border); overflow: hidden; position: relative; }
+  .car-emoji { font-size: 48px; display: inline-block; margin-bottom: 6px; }
+  .gp-label { font-size: 10px; letter-spacing: 4px; color: var(--rosso); font-weight: 700; text-transform: uppercase; margin-bottom: 4px; }
+  .score-label-sm { font-size: 10px; letter-spacing: 2.5px; color: var(--textDim); text-transform: uppercase; margin-bottom: 5px; }
+  .score-big { font-size: 68px; font-weight: 900; line-height: 1; background: linear-gradient(135deg, var(--rosso) 0%, #FF6030 45%, var(--goldLight) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .score-big span { font-size: 34px; opacity: 0.65; }
+  .podium-pill { display: inline-block; padding: 5px 18px; border-radius: 20px; font-size: 12px; font-weight: 800; letter-spacing: 1px; margin-top: 6px; }
+  .score-label { font-size: 14px; font-weight: 700; margin-bottom: 18px; letter-spacing: 1px; }
+  .recap { text-align: left; margin-bottom: 22px; }
+  .recap-item { display: flex; align-items: flex-start; gap: 9px; padding: 8px 12px; margin-bottom: 5px; border-radius: 9px; font-size: 12px; }
+  .recap-item .q { color: var(--textDim); font-size: 10px; margin-bottom: 2px; }
+  .recap-item .detail { color: var(--textSec); font-size: 11px; }
+  .btn-restart { padding: 13px 36px; background: linear-gradient(90deg, var(--rossoDark), var(--rosso)); border: none; border-radius: 11px; color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; letter-spacing: 2px; text-transform: uppercase; box-shadow: 0 4px 18px rgba(212,0,0,0.42); }
+  .confetti-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 200; overflow: hidden; }
+  .confetti { position: absolute; top: -20px; opacity: 0; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes fall { 0%{opacity:1;transform:translateY(0) rotate(0deg)} 100%{opacity:0;transform:translateY(110vh) rotate(720deg)} }
+  @keyframes carDrive { 0%{transform:translateX(-120px) scaleX(-1);opacity:0} 60%{transform:translateX(10px) scaleX(-1);opacity:1} 80%{transform:translateX(-5px) scaleX(-1)} 100%{transform:translateX(0) scaleX(-1);opacity:1} }
+  @keyframes scorePopIn { 0%{opacity:0;transform:scale(0.3)} 100%{opacity:1;transform:scale(1)} }
+  @keyframes fadeSlideUp { 0%{opacity:0;transform:translateY(14px)} 100%{opacity:1;transform:translateY(0)} }
+  .anim-car { animation: carDrive 1.2s ease-out forwards; }
+  .anim-score { animation: scorePopIn 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.5s both; }
+  .anim-pill { animation: fadeSlideUp 0.5s ease 1.2s both; }
+  .anim-label { animation: fadeSlideUp 0.5s ease 1.5s both; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    <div class="badge">🐎</div>
+    <div>
+      <div class="title">Ferrari Palau</div>
+      <div class="subtitle">QUIZZ</div>
+    </div>
+  </div>
+  <div id="qcount-wrap">
+    <div class="qcount-label">QUESTION</div>
+    <div class="qcount"><span id="q-cur">1</span><span>/<span id="q-tot">20</span></span></div>
+  </div>
+</div>
+<div class="progress-track"><div class="progress-bar" id="progress" style="width:0%"></div></div>
+
+<div class="container" id="app"></div>
+
+<script>
+const IMAGES = {
+  laferrari_aperta: "https://raw.githubusercontent.com/edouardbdx/Quizz-Ferrari/main/IMG_0812.jpeg",
+  gto288: "https://raw.githubusercontent.com/edouardbdx/Quizz-Ferrari/main/IMG_0813.jpeg",
+  comp812: "https://raw.githubusercontent.com/edouardbdx/Quizz-Ferrari/main/IMG_0814.webp",
+  modena360: "https://raw.githubusercontent.com/edouardbdx/Quizz-Ferrari/main/IMG_0815.jpeg",
+  f355: "https://raw.githubusercontent.com/edouardbdx/Quizz-Ferrari/main/IMG_0816.jpeg",
+  sf90spider: "https://raw.githubusercontent.com/edouardbdx/Quizz-Ferrari/main/IMG_0817.jpeg",
+  sf90stradale: "https://raw.githubusercontent.com/edouardbdx/Quizz-Ferrari/main/IMG_0818.jpeg",
+  f8tributo: "https://raw.githubusercontent.com/edouardbdx/Quizz-Ferrari/main/IMG_0819.jpeg",
+  california_t: "https://raw.githubusercontent.com/edouardbdx/Quizz-Ferrari/main/IMG_0820.jpeg",
+  gto250: "https://raw.githubusercontent.com/edouardbdx/Quizz-Ferrari/main/IMG_0821.jpeg",
+  f50: "https://raw.githubusercontent.com/edouardbdx/Quizz-Ferrari/main/IMG_0822.jpeg",
+  f40: "https://raw.githubusercontent.com/edouardbdx/Quizz-Ferrari/main/IMG_0823.jpeg",
+  daytona_sp3: "https://raw.githubusercontent.com/edouardbdx/Quizz-Ferrari/main/IMG_0824.jpeg",
+  roma_white: "https://raw.githubusercontent.com/edouardbdx/Quizz-Ferrari/main/IMG_0825.jpeg",
+  scuderia430: "https://raw.githubusercontent.com/edouardbdx/Quizz-Ferrari/main/IMG_0826.jpeg",
+  f12berlinetta: "https://raw.githubusercontent.com/edouardbdx/Quizz-Ferrari/main/IMG_0827.jpeg",
+  gto599: "https://raw.githubusercontent.com/edouardbdx/Quizz-Ferrari/main/IMG_0828.jpeg",
+  gtc4lusso: "https://raw.githubusercontent.com/edouardbdx/Quizz-Ferrari/main/IMG_0829.jpeg",
+  pista488spider: "https://raw.githubusercontent.com/edouardbdx/Quizz-Ferrari/main/IMG_0830.jpeg",
+  italia458: "https://raw.githubusercontent.com/edouardbdx/Quizz-Ferrari/main/IMG_0831.jpeg",
+  roma_black: "https://raw.githubusercontent.com/edouardbdx/Quizz-Ferrari/main/IMG_0832.jpeg",
+  gtb296s: "https://raw.githubusercontent.com/edouardbdx/Quizz-Ferrari/main/IMG_0833.jpeg",
+  scaglietti612: "https://raw.githubusercontent.com/edouardbdx/Quizz-Ferrari/main/IMG_0835.webp",
+  purosangue: "https://raw.githubusercontent.com/edouardbdx/Quizz-Ferrari/main/IMG_0836.jpeg",
+  lm250: "https://raw.githubusercontent.com/edouardbdx/Quizz-Ferrari/main/IMG_0837.jpeg",
+};
+
+const ALL_QUESTIONS = [
+  {
+    img: "california_t",
+    options: ["Ferrari Roma Spider", "Ferrari 296 GTS", "Ferrari California T", "Ferrari Portofino"],
+    correct: 2,
+    explanation: "C'est la Ferrari California T (2012–2017). Le 'T' désigne son moteur turbocompressé — une première chez Ferrari sur ce segment. Reconnaissable à son toit rétractable en métal et ses jantes bicolores.",
+    specs: { years: "2012 – 2017", power: "560 ch", engine: "3.9L V8 biturbo", produced: "~10 000 ex." }
+  },
+  {
+    img: "gto250",
+    options: ["Ferrari 250 GT Berlinetta", "Ferrari 275 GTB", "Ferrari 250 Testa Rossa", "Ferrari 250 GTO"],
+    correct: 3,
+    explanation: "La Ferrari 250 GTO (1962–1964) est l'une des voitures les plus chères au monde (+40 M€ aux enchères). Le numéro 7 de course et la carrosserie Scaglietti sont emblématiques. Seulement 36 exemplaires produits.",
+    specs: { years: "1962 – 1964", power: "300 ch", engine: "3.0L V12", produced: "36 exemplaires" }
+  },
+  {
+    img: "pista488spider",
+    options: ["Ferrari 488 Pista Spider", "Ferrari F8 Spider", "Ferrari 458 Spider", "Ferrari 488 Spider"],
+    correct: 0,
+    explanation: "La Ferrari 488 Pista Spider (2019–2020) est la version haute performance de la 488. Les bandes de course bleues sur blanc et l'aileron arrière proéminent sont caractéristiques de cette série limitée à ~500 ex.",
+    specs: { years: "2019 – 2020", power: "720 ch", engine: "3.9L V8 biturbo", produced: "~500 exemplaires" }
+  },
+  {
+    img: "daytona_sp3",
+    options: ["Ferrari Monza SP2", "Ferrari SF90 XX", "Ferrari Daytona SP3", "Ferrari 849 Testarossa"],
+    correct: 3,
+    explanation: "C'est la Ferrari 849 Testarossa (2026), successeur de la SF90 Stradale. Ce modèle de série rend hommage à la Testarossa légendaire des années 80 tout en adoptant une architecture hybride rechargeable.",
+    specs: { years: "2026 –", power: "1 050 ch combinés", engine: "4.0L V8 biturbo + 3 moteurs électriques", produced: "En production" }
+  },
+  {
+    img: "gto288",
+    options: ["Ferrari 308 GTB", "Ferrari 328 GTB", "Ferrari Testarossa", "Ferrari 288 GTO"],
+    correct: 3,
+    explanation: "La Ferrari 288 GTO (1984–1985) était destinée au Groupe B. Précurseur de la F40, elle se distingue par ses prises d'air sur les ailes avant et son moteur V8 biturbo en position longitudinale. 272 exemplaires.",
+    specs: { years: "1984 – 1985", power: "400 ch", engine: "2.9L V8 biturbo", produced: "272 exemplaires" }
+  },
+  {
+    img: "scuderia430",
+    options: ["Ferrari 360 Challenge Stradale", "Ferrari F430", "Ferrari 430 Scuderia", "Ferrari 458 Speciale"],
+    correct: 2,
+    explanation: "La Ferrari 430 Scuderia (2007–2009) est la version allégée de la F430, développée avec Michael Schumacher. 100 kg de moins que la F430 standard. Bandes noires sur capot et étriers jaunes sont sa signature.",
+    specs: { years: "2007 – 2009", power: "510 ch", engine: "4.3L V8", produced: "~4 500 exemplaires" }
+  },
+  {
+    img: "f355",
+    options: ["Ferrari 348 tb", "Ferrari F355 Berlinetta", "Ferrari 360 Modena", "Ferrari 328 GTS"],
+    correct: 1,
+    explanation: "La Ferrari F355 Berlinetta (1994–1999) est dessinée par Pininfarina. Son V8 à 5 soupapes par cylindre était une innovation majeure. Jantes à 5 branches fines et 5 sorties d'échappement arrière caractéristiques.",
+    specs: { years: "1994 – 1999", power: "381 ch", engine: "3.5L V8", produced: "~11 000 exemplaires" }
+  },
+  {
+    img: "f50",
+    options: ["Ferrari Enzo", "Ferrari F40", "Ferrari 333 SP", "Ferrari F50"],
+    correct: 3,
+    explanation: "La Ferrari F50 (1995–1997) célèbre les 50 ans de Ferrari. C'est un roadster avec un moteur V12 dérivé directement de la F1, monté comme élément de structure. Son aileron distinctif la différencie de la F40.",
+    specs: { years: "1995 – 1997", power: "520 ch", engine: "4.7L V12", produced: "349 exemplaires" }
+  },
+  {
+    img: "roma_black",
+    options: ["Ferrari GTC4Lusso", "Ferrari Roma", "Ferrari 296 GTB", "Ferrari Portofino M"],
+    correct: 1,
+    explanation: "La Ferrari Roma (2020–présent) incarne le style Grand Tourisme classique. Le design épuré sans prise d'air visible et la teinte noire sobre illustrent le retour de Ferrari vers une élégance discrète.",
+    specs: { years: "2020 – présent", power: "620 ch", engine: "3.9L V8 biturbo", produced: "En production" }
+  },
+  {
+    img: "gto599",
+    options: ["Ferrari 599 GTO", "Ferrari 575M Maranello", "Ferrari 599 GTB Fiorano", "Ferrari 612 Scaglietti"],
+    correct: 0,
+    explanation: "La Ferrari 599 GTO (2010–2011) est la version extrême de la 599 GTB. Limitée à 599 unités, elle était la Ferrari de route la plus rapide au Nürburgring à sa sortie. Bandes noires sur capot distinctives.",
+    specs: { years: "2010 – 2011", power: "670 ch", engine: "6.0L V12", produced: "599 exemplaires" }
+  },
+  {
+    img: "sf90stradale",
+    options: ["Ferrari 296 GTB", "Ferrari LaFerrari", "Ferrari SF90 Stradale", "Ferrari F8 Tributo"],
+    correct: 2,
+    explanation: "La Ferrari SF90 Stradale (2020–présent) est la première Ferrari hybride rechargeable de route. 1 000 ch combinés, feux avant en croix. Son nom honore le 90e anniversaire de la Scuderia Ferrari.",
+    specs: { years: "2020 – présent", power: "1 000 ch", engine: "4.0L V8 + 3 moteurs électriques", produced: "En production" }
+  },
+  {
+    img: "sf90spider",
+    options: ["Ferrari SF90 Spider", "Ferrari F8 Spider", "Ferrari 296 GTS", "Ferrari 488 Pista Spider"],
+    correct: 0,
+    explanation: "La Ferrari SF90 Spider (2021–présent) est la version cabriolet de la SF90 Stradale. Son toit se range en 14 secondes. Le jaune 'Giallo Modena' contrasté avec les éléments carbone noirs est un choix typique.",
+    specs: { years: "2021 – présent", power: "1 000 ch", engine: "4.0L V8 + 3 moteurs électriques", produced: "En production" }
+  },
+  {
+    img: "italia458",
+    options: ["Ferrari F8 Tributo", "Ferrari 488 GTB", "Ferrari 458 Italia", "Ferrari 488 Pista"],
+    correct: 2,
+    explanation: "La Ferrari 458 Italia (2009–2015) est l'une des Ferrari les plus appréciées de la critique. V8 atmosphérique milieu, jantes à 5 branches larges et double prise d'air flanquant le diffuseur central avant.",
+    specs: { years: "2009 – 2015", power: "570 ch", engine: "4.5L V8 atmosphérique", produced: "~14 000 exemplaires" }
+  },
+  {
+    img: "roma_white",
+    options: ["Ferrari Portofino M", "Ferrari Roma", "Ferrari California T", "Ferrari 296 GTB"],
+    correct: 1,
+    explanation: "C'est une Ferrari Roma restylée 2024 en teinte 'Bianco Cervino'. Ses feux avant ultra-fins et sa carrosserie épurée s'inspirent des Ferrari GT des années 60. Le design le plus classique de la gamme actuelle.",
+    specs: { years: "2020 – présent", power: "620 ch", engine: "3.9L V8 biturbo", produced: "En production" }
+  },
+  {
+    img: "modena360",
+    options: ["Ferrari F355 Berlinetta", "Ferrari F430", "Ferrari 360 Modena", "Ferrari 430 Scuderia"],
+    correct: 2,
+    explanation: "La Ferrari 360 Modena (1999–2005) est la première Ferrari entièrement en aluminium, 200 kg plus légère que la F355. Son design Pininfarina révolutionnaire expose le moteur sous le capot arrière vitré.",
+    specs: { years: "1999 – 2005", power: "400 ch", engine: "3.6L V8", produced: "~8 800 exemplaires" }
+  },
+  {
+    img: "f12berlinetta",
+    options: ["Ferrari 599 GTO", "Ferrari 812 Superfast", "Ferrari 550 Maranello", "Ferrari F12 Berlinetta"],
+    correct: 3,
+    explanation: "La Ferrari F12 Berlinetta (2012–2017) est la première Ferrari à moteur avant à dépasser 700 ch. Ses 'aero bridge' sur les flancs avant et son long capot nervuré sont distinctifs.",
+    specs: { years: "2012 – 2017", power: "740 ch", engine: "6.3L V12", produced: "~9 000 exemplaires" }
+  },
+  {
+    img: "f8tributo",
+    options: ["Ferrari 488 GTB", "Ferrari F8 Tributo", "Ferrari 458 Italia", "Ferrari 296 GTB"],
+    correct: 1,
+    explanation: "La Ferrari F8 Tributo (2019–2022) succède à la 488. Son capot moteur nervuré, ses feux avant en virgule et son spoiler avant intégré la différencient. Le nom 'Tributo' rend hommage à la lignée V8 Ferrari.",
+    specs: { years: "2019 – 2022", power: "720 ch", engine: "3.9L V8 biturbo", produced: "~5 000 exemplaires" }
+  },
+  {
+    img: "comp812",
+    options: ["Ferrari 812 Competizione", "Ferrari GTC4Lusso T", "Ferrari F12tdf", "Ferrari 812 Superfast"],
+    correct: 0,
+    explanation: "La Ferrari 812 Competizione (2021–2022) est la version track-day de la 812 Superfast. Prises d'air sur le toit, aileron actif, 830 ch. Limitée à 999 exemplaires.",
+    specs: { years: "2021 – 2022", power: "830 ch", engine: "6.5L V12", produced: "999 exemplaires" }
+  },
+  {
+    img: "gtc4lusso",
+    options: ["Ferrari Purosangue", "Ferrari FF", "Ferrari GTC4Lusso", "Ferrari 612 Scaglietti"],
+    correct: 2,
+    explanation: "La Ferrari GTC4Lusso (2016–2020) est unique chez Ferrari avec son format shooting brake 4 places et hayon. Sa transmission intégrale et sa banquette arrière en font la Ferrari la plus polyvalente.",
+    specs: { years: "2016 – 2020", power: "680 ch", engine: "6.3L V12", produced: "~3 000 exemplaires" }
+  },
+  {
+    img: "f40",
+    options: ["Ferrari F40", "Ferrari Enzo", "Ferrari F50", "Ferrari 288 GTO"],
+    correct: 0,
+    explanation: "La Ferrari F40 (1987–1992) est la dernière voiture personnellement approuvée par Enzo Ferrari. Première série à dépasser 320 km/h. Carrosserie Kevlar/carbone, feux pop-up carrés et aileron double iconique.",
+    specs: { years: "1987 – 1992", power: "478 ch", engine: "2.9L V8 biturbo", produced: "1 311 exemplaires" }
+  },
+  {
+    img: "laferrari_aperta",
+    options: ["Ferrari LaFerrari", "Ferrari Enzo", "Ferrari FXX-K", "Ferrari SF90 Stradale"],
+    correct: 0,
+    explanation: "C'est la Ferrari LaFerrari (2013–2016), le hypercars hybride de Ferrari. 963 ch combinés (V12 + HY-KERS). Limitée à 499 exemplaires. À ne pas confondre avec l'Aperta, la version découverte produite à 210 ex. en 2016.",
+    specs: { years: "2013 – 2016", power: "963 ch combinés", engine: "6.3L V12 + moteur électrique", produced: "499 exemplaires" }
+  },
+  {
+    img: "gtb296s",
+    options: ["Ferrari F8 Spider", "Ferrari 488 Spider", "Ferrari SF90 Spider", "Ferrari 296 GTS"],
+    correct: 3,
+    explanation: "C'est la Ferrari 296 GTS (2023–présent), version spider de la 296 GTB. Son moteur V6 biturbo hybride est une première pour une Ferrari de route milieu arrière. La teinte bleu Pozzi et les jantes à 5 branches asymétriques sont caractéristiques.",
+    specs: { years: "2023 – présent", power: "830 ch combinés", engine: "3.0L V6 biturbo + moteur électrique", produced: "En production" }
+  },
+  {
+    img: "scaglietti612",
+    options: ["Ferrari 550 Maranello", "Ferrari 612 Scaglietti", "Ferrari 456 GT", "Ferrari 599 GTB"],
+    correct: 1,
+    explanation: "La Ferrari 612 Scaglietti (2004–2011) est un grand tourisme 2+2 à moteur avant V12. Son nom rend hommage au carrossier Sergio Scaglietti. Reconnaissable à sa large calandre chromée et son long capot plongeant.",
+    specs: { years: "2004 – 2011", power: "540 ch", engine: "5.7L V12", produced: "~3 000 exemplaires" }
+  },
+  {
+    img: "purosangue",
+    options: ["Ferrari Purosangue", "Ferrari Roma", "Lamborghini Urus", "Ferrari GTC4Lusso"],
+    correct: 0,
+    explanation: "La Ferrari Purosangue (2023–présent) est le premier SUV de l'histoire Ferrari. Malgré son gabarit, elle conserve un V12 atmosphérique et 4 vraies portes avec accès indépendant aux places arrière.",
+    specs: { years: "2023 – présent", power: "725 ch", engine: "6.5L V12 atmosphérique", produced: "En production" }
+  },
+  {
+    img: "lm250",
+    options: ["Ferrari 330 P4", "Ferrari 250 LM", "Ferrari 275 GTB/C", "Ferrari 250 GTO"],
+    correct: 1,
+    explanation: "C'est la Ferrari 250 LM (1963–1966), prototype d'endurance portant le numéro 21. Contrairement à la 250 GTO, la LM a son moteur en position centrale arrière. Elle a remporté les 24 Heures du Mans 1965.",
+    specs: { years: "1963 – 1966", power: "320 ch", engine: "3.3L V12", produced: "32 exemplaires" }
+  },
+];
+
+const QUIZ_SIZE = 20;
+const OPT_STYLE = { bg: "rgba(212,0,0,0.16)", border: "1.5px solid rgba(212,0,0,0.45)", letter: "#E04040", text: "#F0E0E0" };
+const C = { rosso:"#D40000", green:"#2ECC71", greenBg:"rgba(46,204,113,0.12)", greenBdr:"rgba(46,204,113,0.35)",
+  goldLight:"#E8B84B", textPri:"#F0EAE0", textSec:"#9A8A80", textDim:"#5A4A44", gold:"#C8952A" };
+
+function shuffle(arr){ const a=[...arr]; for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+let questions, current, selected, score, answers, finished, showCelebration;
+
+function init(){
+  // Pick 20 random questions, then shuffle the options inside each one
+  questions = shuffle(ALL_QUESTIONS).slice(0, QUIZ_SIZE).map(q => {
+    const correctText = q.options[q.correct];
+    const shuffledOpts = shuffle(q.options);
+    return { ...q, options: shuffledOpts, correct: shuffledOpts.indexOf(correctText) };
+  });
+  current = 0; selected = null; score = 0; answers = []; finished = false; showCelebration = false;
+  document.getElementById('q-tot').textContent = QUIZ_SIZE;
+  render();
+}
+
+function scoreLabel(){
+  const p = score / QUIZ_SIZE;
+  if (p === 1) return { t:"FERRARISTA PERFETTO ! 🏆", c:C.goldLight };
+  if (p >= 0.8) return { t:"EXPERT FERRARI ! 🔥", c:C.rosso };
+  if (p >= 0.6) return { t:"BON CONNAISSEUR 👍", c:"#E07030" };
+  if (p >= 0.4) return { t:"APPRENTI TIFOSO 🐎", c:"#C09040" };
+  return { t:"À REVOIR LE CAVALLINO 😅", c:C.textSec };
+}
+
+function selectOption(idx){
+  if (selected !== null) return;
+  selected = idx;
+  const ok = idx === questions[current].correct;
+  if (ok) score++;
+  answers.push({ ok, chosen: questions[current].options[idx], right: questions[current].options[questions[current].correct] });
+  render();
+}
+
+function next(){
+  if (current + 1 >= QUIZ_SIZE){ finished = true; render(); setTimeout(()=>{ showCelebration = true; render(); animateScore(); }, 200); return; }
+  current++; selected = null; render();
+}
+
+function animateScore(){
+  let s = 0; const el = document.getElementById('score-anim');
+  if (!el) return;
+  const iv = setInterval(()=>{ s++; if(el) el.firstChild.textContent = s; if (s >= score) clearInterval(iv); }, 80);
+}
+
+function render(){
+  const app = document.getElementById('app');
+  const answered = current + (selected !== null ? 1 : 0);
+  document.getElementById('q-cur').textContent = current + 1;
+  document.getElementById('progress').style.width = (current/QUIZ_SIZE*100) + '%';
+  document.getElementById('qcount-wrap').style.display = finished ? 'none' : 'block';
+
+  if (!finished){
+    const q = questions[current];
+    let optsHtml = '';
+    q.options.forEach((opt, idx) => {
+      let s;
+      if (selected === null) s = OPT_STYLE;
+      else if (idx === q.correct) s = { bg:C.greenBg, border:'2px solid '+C.green, letter:C.green, text:C.green };
+      else if (idx === selected) s = { bg:'rgba(212,0,0,0.16)', border:'2px solid '+C.rosso, letter:'#FF7070', text:'#FF9090' };
+      else s = { bg:'rgba(255,255,255,0.015)', border:'1.5px solid rgba(255,255,255,0.06)', letter:C.textDim, text:C.textDim };
+      let mark = '';
+      if (selected !== null && idx === q.correct) mark = '<span class="mark">✅</span>';
+      else if (selected !== null && idx === selected) mark = '<span class="mark">❌</span>';
+      const hov = selected === null ? 'onmouseenter="this.style.background=\'rgba(212,0,0,0.30)\'" onmouseleave="this.style.background=\''+s.bg+'\'"' : '';
+      optsHtml += '<button class="opt" style="background:'+s.bg+';border:'+s.border+';color:'+s.text+';cursor:'+(selected===null?'pointer':'default')+'" '+hov+' onclick="selectOption('+idx+')">'
+        + '<span class="letter" style="background:rgba(212,0,0,0.25);border:1px solid '+s.letter+';color:'+s.letter+'">'+String.fromCharCode(65+idx)+'</span>'
+        + '<span class="opt-text">'+opt+'</span>'+mark+'</button>';
+    });
+
+    let expHtml = '';
+    if (selected !== null){
+      const ok = selected === q.correct;
+      expHtml = '<div class="explanation">'
+        + '<div class="exp-head" style="color:'+(ok?C.green:'#FF7070')+'"><span style="font-size:20px">'+(ok?'✅':'❌')+'</span>'
+        + (ok ? 'Bonne réponse !' : 'Bonne réponse : '+q.options[q.correct]) + '</div>'
+        + '<p class="exp-text">'+q.explanation+'</p>'
+        + '<div class="specs"><div class="specs-title">Fiche technique</div><div class="specs-grid">'
+        + '<div><div class="label">📅 Production</div><div class="value">'+q.specs.years+'</div></div>'
+        + '<div><div class="label">⚡ Puissance</div><div class="value">'+q.specs.power+'</div></div>'
+        + '<div><div class="label">🔧 Moteur</div><div class="value">'+q.specs.engine+'</div></div>'
+        + '<div><div class="label">🏭 Exemplaires</div><div class="value">'+q.specs.produced+'</div></div>'
+        + '</div></div></div>';
+    }
+
+    let nextHtml = '';
+    if (selected !== null){
+      nextHtml = '<button class="btn-next" onclick="next()">'+(current+1>=QUIZ_SIZE?'Voir les résultats 🏆':'Question suivante →')+'</button>';
+    }
+
+    const pct = answered > 0 ? Math.round(score/answered*100) : null;
+    const pctColor = answered > 0 ? (score/answered >= 0.6 ? C.green : C.rosso) : C.textDim;
+
+    app.innerHTML = '<div class="chip-row"><div class="chip">🏆 '+score+' / '+answered+'</div></div>'
+      + '<div class="img-wrap"><img src="'+IMAGES[q.img]+'" alt="Ferrari"><div class="vignette"></div></div>'
+      + '<div class="options">'+optsHtml+'</div>'
+      + expHtml + nextHtml
+      + '<div class="counter"><div class="c-label">Bonnes réponses</div>'
+      + '<div class="c-score"><span class="big">'+score+'</span><span class="small">/ '+answered+'</span></div>'
+      + '<div class="c-pct" style="color:'+pctColor+'">'+(pct!==null?pct+'%':'—')+'</div></div>';
+  } else {
+    // RESULTS
+    let confetti = '';
+    if (showCelebration){
+      const colors = [C.rosso, C.goldLight, '#fff', '#FF6B35', '#6B0000'];
+      let parts = '';
+      for (let i=0;i<60;i++){
+        const x = Math.random()*100, delay = i*0.04, col = colors[i%5];
+        const w = 6+(i%3)*4, h = 8+(i%4)*5, br = i%3===0?'50%':'2px', dur = 1.5+(i%3)*0.4;
+        parts += '<div class="confetti" style="left:'+x+'%;width:'+w+'px;height:'+h+'px;background:'+col+';border-radius:'+br+';animation:fall '+dur+'s ease-in '+delay+'s forwards;transform:rotate('+(i*37%360)+'deg)"></div>';
+      }
+      confetti = '<div class="confetti-layer">'+parts+'</div>';
+    }
+    const lab = scoreLabel();
+    let podiumBg, podiumColor, podiumText;
+    if (score>=16){ podiumBg='linear-gradient(90deg,#7A5800,'+C.gold+',#7A5800)'; podiumColor='#0A0000'; podiumText='🥇 PODIUM OR'; }
+    else if (score>=12){ podiumBg='linear-gradient(90deg,#3A3A3A,#888,#3A3A3A)'; podiumColor='#0A0000'; podiumText='🥈 PODIUM ARGENT'; }
+    else if (score>=8){ podiumBg='linear-gradient(90deg,#5C2A00,#A0622A,#5C2A00)'; podiumColor='#0A0000'; podiumText='🥉 PODIUM BRONZE'; }
+    else { podiumBg='rgba(255,255,255,0.05)'; podiumColor='#555'; podiumText='🔧 PIT STOP NÉCESSAIRE'; }
+
+    let recapHtml = '';
+    answers.forEach((a,i)=>{
+      recapHtml += '<div class="recap-item" style="background:'+(a.ok?C.greenBg:'rgba(180,0,0,0.08)')+';border:1px solid '+(a.ok?C.greenBdr:'rgba(180,0,0,0.22)')+'">'
+        + '<span style="flex-shrink:0;margin-top:1px">'+(a.ok?'✅':'❌')+'</span><div><div class="q">Q'+(i+1)+'</div>'
+        + (!a.ok ? '<div class="detail">Votre réponse : <span style="color:#FF7070">'+a.chosen+'</span> → <span style="color:'+C.green+'">'+a.right+'</span></div>' : '')
+        + '</div></div>';
+    });
+
+    app.innerHTML = '<div class="results">'+confetti
+      + '<div class="podium-card">'
+      + '<div class="car-emoji'+(showCelebration?' anim-car':'')+'">🏎️</div>'
+      + '<div class="gp-label">🏁 GRAND PRIX TERMINÉ 🏁</div>'
+      + '<div style="margin:10px 0 4px"><div class="score-label-sm">Votre score</div>'
+      + '<div class="score-big'+(showCelebration?' anim-score':'')+'" id="score-anim">'+(showCelebration?0:score)+'<span>/20</span></div></div>'
+      + '<div class="podium-pill'+(showCelebration?' anim-pill':'')+'" style="background:'+podiumBg+';color:'+podiumColor+'">'+podiumText+'</div>'
+      + '</div>'
+      + '<div class="score-label'+(showCelebration?' anim-label':'')+'" style="color:'+lab.c+'">'+lab.t+'</div>'
+      + '<div class="recap">'+recapHtml+'</div>'
+      + '<button class="btn-restart" onclick="init()">🔄 NOUVELLE COURSE</button>'
+      + '</div>';
+  }
+}
+
+init();
+</script>
+</body>
+</html>
